@@ -5,7 +5,11 @@ import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from "react-markdown";
 import { resumeData } from "../lib/resumeData";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+// Safe loading of both client-side and server-side keys
+const GEMINI_API_KEY = 
+  ((import.meta as any).env?.VITE_GEMINI_API_KEY as string) || 
+  (typeof process !== "undefined" ? process.env.GEMINI_API_KEY as string : "") || 
+  "";
 
 export default function ResumeBot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,6 +34,15 @@ export default function ResumeBot() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Sync messages when API Key becomes available
+  useEffect(() => {
+    const activeKey = GEMINI_API_KEY || localStorage.getItem("SAMRUDDHI_PORTFOLIO_GEMINI_KEY") || "";
+    if (activeKey) {
+      setApiKey(activeKey);
+      setMessages([{ role: 'assistant', content: "Hi! I'm Samruddhi's AI Assistant. Ask me anything about her projects, skills, or experience!" }]);
+    }
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -171,7 +184,7 @@ export default function ResumeBot() {
                     <span className="text-[10px] text-yellow-400 font-mono bg-yellow-400/10 px-1.5 py-0.5 rounded">Saved in Browser</span>
                   </div>
                   <p className="text-[11px] text-slate-400 leading-normal">
-                    To make this chatbot work, either paste a temporary <a href="https://aistudio.google.com/" target="_blank" rel="noreferrer" className="text-secondary hover:underline">Gemini key</a> below, or add `GEMINI_API_KEY` to your hosting platform's environment variables and re-trigger a deployment.
+                    To make this chatbot work, either paste a temporary <a href="https://aistudio.google.com/" target="_blank" rel="noreferrer" className="text-secondary hover:underline">Gemini key</a> below, or add `VITE_GEMINI_API_KEY` to your hosting platform's environment variables and re-trigger a deployment.
                   </p>
                   <div className="flex gap-2">
                     <input
